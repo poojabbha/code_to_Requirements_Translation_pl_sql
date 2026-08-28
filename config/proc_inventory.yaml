@@ -1,0 +1,81 @@
+# config/proc_inventory.yaml
+#
+# One entry per stored proc in scope for migration. This is the durable
+# record of migration status — don't track this in chat history or
+# memory. Status lifecycle: not_started -> extracted -> validated ->
+# migrated -> cutover.
+#
+# NOTE: All three procs below are demo/dummy procs built to exercise this
+# pipeline end to end (no real production PL/SQL codebase available in
+# this session) — chosen deliberately to span low/medium/high complexity
+# per CLAUDE.md's "mix of simple and complex" requirement. Replace with
+# real procs before treating any status/parity result here as meaningful.
+
+procs:
+  - name: "PKG_RCC"
+    source_path: "reference/procs/pkg_rcc.sql"
+    status: extracted
+    complexity: "high — row-locking cursor (FOR UPDATE), tiered rate caps
+      by tenure/tier, a double-cap on the prorated amount, batch
+      idempotency guard via package state, and an exception handler that
+      writes to the same log table as the happy path"
+    call_frequency: "unknown — demo proc, no production data"
+    depends_on: []
+    business_owner_signoff: null
+    target_orm: EntityFramework
+    parity_test_result: not_yet_run
+    notes: "Update status/parity_test_result as you actually complete
+      Steps 2-9 of the playbook — this entry assumes reverse-engineering
+      (requirements/business_rules/technical_spec) is done but code
+      generation and parity testing have not been confirmed complete."
+
+  - name: "SP_CALC_LATE_FEE"
+    source_path: "reference/procs/sp_calc_late_fee.sql"
+    status: extracted
+    complexity: "low — single standalone function, one lookup, two
+      conditional branches, one exception handler, no cursor"
+    call_frequency: "unknown — demo proc, no production data"
+    depends_on: []
+    business_owner_signoff: null
+    target_orm: EntityFramework
+    parity_test_result: "6/6 automated tests pass, 0 skipped — see
+      reference/parity-results/sp_calc_late_fee.md. BR-01, BR-02, BR-04
+      are proven against real Oracle output. BR-03 was confirmed
+      2026-08-26 as '$10/day, uncapped, balance-independent' — a
+      DIFFERENT rule than the deployed proc still computes (floor/5%/
+      $150-cap, unchanged). C# now intentionally diverges from the live
+      proc for BR-03 (proven directly: real output for (2001,10,500) is
+      25, C# correctly returns 100). This is by design, not a defect.
+      6 of 10 current acceptance criteria have never been run against
+      live Oracle or tested in C#."
+    notes: "Full extraction pipeline run: structural_inventory.md,
+      business_rules.md, requirements.md, technical_spec.md,
+      acceptance_criteria.md all produced and kept in sync.
+      BR-01/BR-02/BR-03/BR-04 all implemented in
+      src/RccMigration/LateFee/LateFeeCalculator.cs. BR-03's $10/day
+      rule was confirmed and implemented 2026-08-26 by direct
+      instruction from the project owner in a Claude Code session —
+      this is NOT the same as the formal business_owner_signoff below
+      (still null) or a DECISIONS.md sign-off-authority record (still
+      unset); that paperwork is still outstanding for all four rules,
+      not just BR-03. The deployed SP_CALC_LATE_FEE proc has not been
+      updated to match BR-03 and is out of scope for this pipeline to
+      change — it is now a known-outdated reference implementation for
+      that one rule. Next steps: record formal sign-off for all four
+      rules, capture the remaining 6 acceptance criteria against live
+      Oracle/in C# tests (TC-03, TC-05, TC-06, TC-08, TC-10, and the
+      supplementary grace-period case)."
+
+  - name: "PKG_LOYALTY.APPLY_LOYALTY_DISCOUNT"
+    source_path: "reference/procs/pkg_loyalty.sql"
+    status: not_started
+    complexity: "medium — one aggregate query (trailing 12-month spend),
+      a tiered discount ladder, a lockout-window check similar in shape
+      to PKG_RCC's locked-account rule, and a logging exception handler"
+    call_frequency: "unknown — demo proc, no production data"
+    depends_on: []
+    business_owner_signoff: null
+    target_orm: EntityFramework
+    parity_test_result: not_yet_run
+    notes: "Depends on orders and promo_lockout tables seeded via
+      oracle_setup/05_loyalty_schema_and_seed.sql."

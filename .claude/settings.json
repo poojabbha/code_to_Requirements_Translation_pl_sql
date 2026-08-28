@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(./**)",
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(dotnet build*)",
+      "Bash(dotnet test*)",
+      "Bash(dotnet run*)",
+      "Bash(dotnet restore*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/secrets/**)",
+      "Read(./**/*.pem)",
+      "Read(./**/*credentials*)",
+      "Read(./**/appsettings.*.json)",
+      "Bash(rm -rf *)",
+      "Bash(git push*)"
+    ]
+  }
+}

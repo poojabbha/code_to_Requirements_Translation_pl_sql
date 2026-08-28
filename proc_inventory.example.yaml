@@ -1,0 +1,32 @@
+# config/proc_inventory.example.yaml
+#
+# One entry per stored proc in scope for migration. This is the durable
+# record of migration status — don't track this in chat history or
+# memory. Status lifecycle: not_started -> extracted -> validated ->
+# migrated -> cutover.
+
+procs:
+  - name: "[FILL IN — e.g. SP_CALC_RETRO_PREMIUM]"
+    source_path: "reference/procs/[FILL IN].sql"
+    status: not_started
+    complexity: "[low | medium | high — your estimate]"
+    call_frequency: "[FILL IN if known — how often this runs in production]"
+    depends_on: []              # names of other procs this one calls, if any
+    business_owner_signoff: null # set to "name, YYYY-MM-DD" once validated
+    target_orm: "[NHibernate | EntityFramework — confirm before code gen]"
+    parity_test_result: null    # pass | fail | not_yet_run
+    notes: ""
+
+  - name: "[FILL IN]"
+    source_path: "reference/procs/[FILL IN].sql"
+    status: not_started
+    complexity: ""
+    call_frequency: ""
+    depends_on: []
+    business_owner_signoff: null
+    target_orm: ""
+    parity_test_result: null
+    notes: ""
+
+# Add one entry per proc as it's identified — this file is expected to
+# grow well beyond the 2-3 procs demoed in a single session.
